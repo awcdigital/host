@@ -4,13 +4,13 @@ services:
     runtime: python
     buildCommand: |
       pip install -r requirements.txt
+      pip install waitress
     startCommand: |
-      gunicorn app:app --bind 0.0.0.0:$PORT --workers 1 --threads 2 --timeout 120
+      waitress-serve --port=$PORT app:app
     envVars:
-      - key: TELEGRAM_TOKEN
-        value: "7953276961:AAFMas8PAjUVapJzVXurDEg5ACwoGfkW-_s"
-      - key: ADMINS
-        value: "8167507955"
       - key: PORT
         value: 5000
-    plan: free
+      - key: TELEGRAM_TOKEN
+        value: 7953276961:AAFMas8PAjUVapJzVXurDEg5ACwoGfkW-_s
+      - key: ADMINS
+        value: "8167507955"
