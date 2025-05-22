@@ -1,33 +1,42 @@
+from flask import Flask, jsonify
 import os
 import json
 import subprocess
-import threading
-import time
 import psutil
 from datetime import datetime
 import telebot
 from telebot import types
 import random
 import string
+import threading
+from waitress import serve
 
-TOKEN = os.getenv('TELEGRAM_TOKEN')  # Changed to use environment variable
+app = Flask(__name__)
+
+# Configuration
+TOKEN = os.getenv('TELEGRAM_TOKEN')
 bot = telebot.TeleBot(TOKEN)
+ADMINS = os.getenv('ADMINS', '').split(',')
 
-ADMINS = os.getenv('ADMINS', '').split(',')  # Changed to use environment variable
-
-
+# File system setup
 os.makedirs("scripts", exist_ok=True)
-if not os.path.exists("user_data.json"):
-    with open("user_data.json", "w") as f:
+USER_DATA_FILE = "user_data.json"
+if not os.path.exists(USER_DATA_FILE):
+    with open(USER_DATA_FILE, "w") as f:
         json.dump({}, f)
 
+# Thread safety
+file_lock = threading.Lock()
+
 def load_data():
-    with open("user_data.json", "r") as f:
-        return json.load(f)
+    with file_lock:
+        with open(USER_DATA_FILE, "r") as f:
+            return json.load(f)
 
 def save_data(data):
-    with open("user_data.json", "w") as f:
-        json.dump(data, f, indent=4)
+    with file_lock:
+        with open(USER_DATA_FILE, "w") as f:
+            json.dump(data, f, indent=4)
 
 running_scripts = {}
 
@@ -49,8 +58,6 @@ def cleanup_zombies():
                 except psutil.NoSuchProcess:
                     script_data["status"] = "stopped"
     save_data(data)
-
-cleanup_zombies()
 
 def run_script(user_id, script_id, script_path):
     data = load_data()
@@ -467,8 +474,22 @@ def callback_handler(call):
         else:
             bot.answer_callback_query(call.id, "Script not found")
 
-if __name__ == "__main__":
-    print("🤖 Bot is running...")
-    bot.polling(none_stop=True)
+# Health check endpoint
+@app.route('/')
+def health_check():
+    return jsonify({
+        "status": "running",
+        "bot": "active",
+        "timestamp": datetime.now().isoformat()
+    })
 
-#made by maut
+# Start bot polling in background
+def run_bot():
+    cleanup_zombies()
+    print("🤖 Bot started polling...")
+    bot.infinity_polling(none_stop=True, restart_on_change=True)
+
+if __name__ == '__main__':
+    bot_thread = threading.Thread(target=run_bot, daemon=True)
+    bot_thread.start()
+    serve(app, host="0.0.0.0", port=5000)
