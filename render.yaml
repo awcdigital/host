@@ -4,9 +4,8 @@ services:
     runtime: python
     buildCommand: |
       pip install -r requirements.txt
-      pip install waitress
     startCommand: |
-      waitress-serve --port=$PORT app:app
+      gunicorn --bind :$PORT --workers 1 --threads 8 --timeout 0 app:app
     envVars:
       - key: PORT
         value: 5000
