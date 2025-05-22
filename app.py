@@ -490,6 +490,8 @@ def run_bot():
     bot.infinity_polling(none_stop=True, restart_on_change=True)
 
 if __name__ == '__main__':
+    # For local development
+    from waitress import serve
     bot_thread = threading.Thread(target=run_bot, daemon=True)
     bot_thread.start()
     serve(app, host="0.0.0.0", port=5000)
