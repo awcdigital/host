@@ -3,6 +3,7 @@ services:
     name: python-script-bot
     runtime: python
     buildCommand: |
+      python -m pip install --upgrade pip
       pip install -r requirements.txt
     startCommand: |
       gunicorn --bind :$PORT --workers 1 --threads 8 --timeout 0 app:app
@@ -13,3 +14,4 @@ services:
         value: "7953276961:AAFMas8PAjUVapJzVXurDEg5ACwoGfkW-_s"
       - key: ADMINS
         value: "8167507955"
+    plan: free
