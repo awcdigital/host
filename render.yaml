@@ -11,7 +11,7 @@ services:
       - key: PORT
         value: 5000
       - key: TELEGRAM_TOKEN
-        value: "7953276961:AAFMas8PAjUVapJzVXurDEg5ACwoGfkW-_s"
+        value: "5740914918:AAG9JqEC3GssWFfZaLpT2Jjmv8dlC4KR6JI"
       - key: ADMINS
-        value: "8167507955"
+        value: "1813121392"
     plan: free
